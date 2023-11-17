@@ -3,8 +3,9 @@ package handler
 import (
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"server/internal/core/domain"
-	"server/internal/core/ports"
+	"server/core/domain"
+	"server/core/ports"
+	"strconv"
 )
 
 type UserHandler struct {
@@ -32,7 +33,13 @@ func (h *UserHandler) RegisterRoutes(e *echo.Echo) {
 }
 
 func (h *UserHandler) GetUser(ctx echo.Context) error {
-	id := ctx.Param("id")
+	idParam := ctx.Param("id")
+
+	id, err := strconv.ParseUint(idParam, 10, 64)
+
+	if err != nil {
+		return echo.ErrBadRequest
+	}
 
 	user, err := h.serviceUser.GetUser(ctx.Request().Context(), id)
 
@@ -54,7 +61,7 @@ func (h *UserHandler) GetUsers(ctx echo.Context) error {
 }
 
 func (h *UserHandler) SaveUser(ctx echo.Context) error {
-	var user domain.User
+	var user domain.CreateUser
 
 	if err := ctx.Bind(&user); err != nil {
 		return err
@@ -67,8 +74,8 @@ func (h *UserHandler) SaveUser(ctx echo.Context) error {
 	err := h.serviceUser.SaveUser(ctx.Request().Context(), &user)
 
 	if err != nil {
-		return err
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	return ctx.JSON(http.StatusOK, user)
+	return ctx.NoContent(http.StatusOK)
 }

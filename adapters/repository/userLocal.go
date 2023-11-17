@@ -1,8 +1,9 @@
 package repository
 
 import (
+	"context"
 	"github.com/labstack/echo/v4"
-	"server/internal/core/domain"
+	"server/core/domain"
 )
 
 type RepoUserLocal struct {
@@ -23,15 +24,15 @@ func GetRepoUserLocal() *RepoUserLocal {
 	return repoUserLocal
 }
 
-func (r *RepoUserLocal) SaveUser(user *domain.User) error {
+func (r *RepoUserLocal) SaveUser(ctx context.Context, user *domain.User) error {
 	r.slice = append(r.slice, *user)
 
 	return nil
 }
 
-func (r *RepoUserLocal) GetUser(id string) (*domain.User, error) {
+func (r *RepoUserLocal) GetUser(ctx context.Context, id uint64) (*domain.User, error) {
 	for i := range r.slice {
-		if r.slice[i].Id == id {
+		if r.slice[i].ID == id {
 			return &r.slice[i], nil
 		}
 	}
@@ -39,7 +40,7 @@ func (r *RepoUserLocal) GetUser(id string) (*domain.User, error) {
 	return nil, echo.ErrNotFound
 }
 
-func (r *RepoUserLocal) GetUsers() ([]*domain.User, error) {
+func (r *RepoUserLocal) GetUsers(ctx context.Context) ([]*domain.User, error) {
 	users := []*domain.User{}
 
 	for i := range r.slice {
