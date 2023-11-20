@@ -2,30 +2,30 @@ package migrations
 
 import (
 	"gorm.io/gorm"
-	domain2 "server/core/domain"
+	"server/core/domain"
 )
 
 func RunMigrations(db *gorm.DB) error {
-	err := db.SetupJoinTable(&domain2.User{}, "Projects", &domain2.UserProject{})
+	err := db.SetupJoinTable(&domain.User{}, "Projects", &domain.UserProject{})
 
 	if err != nil {
 		return err
 	}
 
-	err = db.SetupJoinTable(&domain2.Project{}, "Members", &domain2.UserProject{})
+	err = db.SetupJoinTable(&domain.Project{}, "Members", &domain.UserProject{})
 
 	if err != nil {
 		return err
 	}
 
 	err = db.AutoMigrate(
-		&domain2.User{},
-		&domain2.ProjectGroup{},
-		&domain2.Project{},
-		&domain2.TicketTag{},
-		&domain2.Ticket{},
-		&domain2.TicketComment{},
-		&domain2.UserProjectRole{},
+		&domain.User{},
+		&domain.ProjectGroup{},
+		&domain.Project{},
+		&domain.TicketTag{},
+		&domain.Ticket{},
+		&domain.TicketComment{},
+		&domain.UserProjectRole{},
 	)
 
 	return err

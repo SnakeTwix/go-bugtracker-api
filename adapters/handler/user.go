@@ -12,24 +12,24 @@ type UserHandler struct {
 	serviceUser ports.ServiceUser
 }
 
-var httpHandler *UserHandler
+var userHandler *UserHandler
 
 func GetUserHandler(serviceUser ports.ServiceUser) *UserHandler {
-	if httpHandler != nil {
-		return httpHandler
+	if userHandler != nil {
+		return userHandler
 	}
 
-	httpHandler = &UserHandler{
+	userHandler = &UserHandler{
 		serviceUser: serviceUser,
 	}
 
-	return httpHandler
+	return userHandler
 }
 
-func (h *UserHandler) RegisterRoutes(e *echo.Echo) {
+func (h *UserHandler) RegisterRoutes(e *echo.Group) {
 	e.GET("/users", h.GetUsers)
 	e.GET("/users/:id", h.GetUser)
-	e.POST("/users", h.SaveUser)
+	//e.POST("/users", h.SaveUser)
 }
 
 func (h *UserHandler) GetUser(ctx echo.Context) error {
@@ -71,11 +71,11 @@ func (h *UserHandler) SaveUser(ctx echo.Context) error {
 		return err
 	}
 
-	err := h.serviceUser.SaveUser(ctx.Request().Context(), &user)
+	id, err := h.serviceUser.SaveUser(ctx.Request().Context(), &user)
 
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	return ctx.NoContent(http.StatusOK)
+	return ctx.JSON(http.StatusOK, id)
 }

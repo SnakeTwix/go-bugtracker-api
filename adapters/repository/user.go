@@ -24,12 +24,10 @@ func GetRepoUser(db *gorm.DB) *RepoUser {
 	return repoUser
 }
 
-func (r *RepoUser) SaveUser(ctx context.Context, user *domain.User) error {
-	newUser := *user
+func (r *RepoUser) SaveUser(ctx context.Context, user *domain.User) (uint64, error) {
+	err := r.db.Create(user).Error
 
-	err := r.db.Create(&newUser).Error
-
-	return err
+	return user.ID, err
 }
 
 func (r *RepoUser) GetUser(ctx context.Context, id uint64) (*domain.GetUser, error) {

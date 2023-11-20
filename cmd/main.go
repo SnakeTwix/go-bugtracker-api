@@ -6,11 +6,13 @@ import (
 	"server/adapters/repository"
 	"server/adapters/repository/migrations"
 	"server/core/services"
-	"server/initializer/echo"
+	"server/tools/echo"
 )
 
 func main() {
 	e := echo.GetEchoInstance()
+	apiV1 := e.Group("/api/v1")
+
 	db := repository.InitDB()
 
 	if err := migrations.RunMigrations(db); err != nil {
@@ -21,8 +23,10 @@ func main() {
 	repoUser := repository.GetRepoUser(db)
 	serviceUser := services.GetServiceUser(repoUser)
 	userHandler := handler.GetUserHandler(serviceUser)
+	authHandler := handler.GetAuthHandler(serviceUser)
 
-	userHandler.RegisterRoutes(e)
+	userHandler.RegisterRoutes(apiV1)
+	authHandler.RegisterRoutes(apiV1)
 
 	e.Logger.Debug(e.Start(":1234"))
 }
