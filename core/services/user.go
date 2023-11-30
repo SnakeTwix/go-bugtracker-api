@@ -25,11 +25,11 @@ func GetServiceUser(repo ports.RepositoryUser) *ServiceUser {
 	return userService
 }
 
-func (s *ServiceUser) SaveUser(ctx context.Context, APIUser *domain.CreateUser) (uint64, error) {
+func (s *ServiceUser) SaveUser(ctx context.Context, APIUser *domain.CreateUser) (*domain.User, error) {
 	hash, err := scrypt.GenerateFromPassword([]byte(*APIUser.Password), scrypt.DefaultParams)
 
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	hashStr := string(hash)

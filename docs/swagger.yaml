@@ -1,0 +1,115 @@
+definitions:
+  domain.CreateUser:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  domain.GetUser:
+    properties:
+      icon:
+        type: string
+      id:
+        type: integer
+      privilege:
+        type: string
+      status:
+        type: string
+      username:
+        type: string
+    required:
+    - username
+    type: object
+  domain.Token:
+    properties:
+      jwt:
+        type: string
+      refreshToken:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Registers a user with default permissions
+      parameters:
+      - description: The user data to use when registering
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CreateUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Token'
+            type: array
+        "400":
+          description: Should only happen when there is already a user with the same
+            username
+          schema: {}
+        "500":
+          description: Shouldn't happen, but will if something fails
+          schema: {}
+      summary: Registers a user
+      tags:
+      - auth
+  /api/v1/users:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items:
+                $ref: '#/definitions/domain.GetUser'
+              type: array
+            type: array
+        "500":
+          description: Shouldn't happen, but will if something fails
+          schema: {}
+      summary: Get all users
+      tags:
+      - users
+  /api/v1/users/{userId}:
+    get:
+      description: Get a user by id provided in the link
+      parameters:
+      - description: The user id that you need to get
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.GetUser'
+        "400":
+          description: Happens if the id isn't numerical
+          schema: {}
+        "404":
+          description: Happens if there is no user with such id
+          schema: {}
+        "500":
+          description: Shouldn't happen, but will if something fails
+          schema: {}
+      summary: Get a user
+      tags:
+      - users
+swagger: "2.0"

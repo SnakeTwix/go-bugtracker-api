@@ -5,7 +5,7 @@ import "time"
 type User struct {
 	ID           uint64  `json:"id"`
 	Username     *string `json:"username" validate:"required" gorm:"unique;not null"`
-	Password     *string `json:"password,omitempty" validate:"required" gorm:"not null"`
+	Password     *string `json:"-" validate:"required" gorm:"not null"`
 	Icon         *string `json:"icon,omitempty"`
 	Status       *string `json:"status" gorm:"not null"`
 	Privilege    *string `json:"privilege" gorm:"not null"`
@@ -25,8 +25,8 @@ type GetUser struct {
 	Status    *string `json:"status"`
 	Privilege *string `json:"privilege"`
 
-	Projects []*Project `json:"projects,omitempty"`
-	Tickets  []*Ticket  `json:"tickets,omitempty"`
+	Projects []*Project `json:"projects,omitempty" swaggerignore:"true"`
+	Tickets  []*Ticket  `json:"tickets,omitempty" swaggerignore:"true"`
 }
 
 type CreateUser struct {

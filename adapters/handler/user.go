@@ -32,6 +32,17 @@ func (h *UserHandler) RegisterRoutes(e *echo.Group) {
 	//e.POST("/users", h.SaveUser)
 }
 
+// GetUser godoc
+// @Summary      Get a user
+// @Description  Get a user by id provided in the link
+// @Tags         users
+// @Produce      json
+// @Param userId path uint64 true "The user id that you need to get"
+// @Success      200  {object}   domain.GetUser
+// @Failure      400  {object}  error "Happens if the id isn't numerical"
+// @Failure      404  {object}  error "Happens if there is no user with such id"
+// @Failure      500  {object}  error "Shouldn't happen, but will if something fails"
+// @Router       /api/v1/users/{userId} [GET]
 func (h *UserHandler) GetUser(ctx echo.Context) error {
 	idParam := ctx.Param("id")
 
@@ -50,6 +61,13 @@ func (h *UserHandler) GetUser(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, user)
 }
 
+// GetUsers godoc
+// @Summary      Get all users
+// @Tags         users
+// @Produce      json
+// @Success      200  {array}   []domain.GetUser
+// @Failure      500  {object}  error "Shouldn't happen, but will if something fails"
+// @Router       /api/v1/users [GET]
 func (h *UserHandler) GetUsers(ctx echo.Context) error {
 	users, err := h.serviceUser.GetUsers(ctx.Request().Context())
 
