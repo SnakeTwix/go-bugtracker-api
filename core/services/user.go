@@ -26,7 +26,7 @@ func GetServiceUser(repo ports.RepositoryUser) *ServiceUser {
 	return userService
 }
 
-func (s *ServiceUser) SaveUser(ctx context.Context, APIUser *domain.CreateUser) (*domain.User, error) {
+func (s *ServiceUser) SaveUser(ctx context.Context, APIUser *domain.CreateUser) (*domain.Token, error) {
 	hash, err := scrypt.GenerateFromPassword([]byte(*APIUser.Password), scrypt.DefaultParams)
 
 	if err != nil {
@@ -44,7 +44,21 @@ func (s *ServiceUser) SaveUser(ctx context.Context, APIUser *domain.CreateUser) 
 		Privilege: &privilege,
 	}
 
-	return s.userRepo.SaveUser(ctx, user)
+	createdUser, err := s.userRepo.SaveUser(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	tokener := &jwt.TokenGenerator{
+		User: createdUser,
+	}
+
+	token, err := tokener.Token()
+	if err != nil {
+		return nil, err
+	}
+
+	return token, err
 }
 
 func (s *ServiceUser) GetUser(ctx context.Context, id uint64) (*domain.GetUser, error) {

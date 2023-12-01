@@ -6,7 +6,7 @@ import (
 )
 
 type ServiceUser interface {
-	SaveUser(ctx context.Context, user *domain.CreateUser) (*domain.User, error)
+	SaveUser(ctx context.Context, user *domain.CreateUser) (*domain.Token, error)
 	GetUser(ctx context.Context, id uint64) (*domain.GetUser, error)
 	GetUsers(ctx context.Context) ([]*domain.GetUser, error)
 	LoginUser(ctx context.Context, user *domain.LoginUser) (*domain.Token, error)

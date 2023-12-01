@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"server/adapters/tools/jwt"
 	"server/core/domain"
 	"server/core/ports"
 )
@@ -53,18 +52,9 @@ func (h *AuthHandler) Register(ctx echo.Context) error {
 		return err
 	}
 
-	createdUser, err := h.serviceUser.SaveUser(ctx.Request().Context(), &user)
+	token, err := h.serviceUser.SaveUser(ctx.Request().Context(), &user)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-
-	tokener := &jwt.TokenGenerator{
-		User: createdUser,
-	}
-
-	token, err := tokener.Token()
-	if err != nil {
-		return err
 	}
 
 	return ctx.JSON(http.StatusOK, token)
