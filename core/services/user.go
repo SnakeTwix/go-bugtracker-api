@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	scrypt "github.com/elithrar/simple-scrypt"
+	"server/adapters/tools/jwt"
 	"server/core/domain"
 	"server/core/ports"
 )
@@ -52,4 +53,25 @@ func (s *ServiceUser) GetUser(ctx context.Context, id uint64) (*domain.GetUser, 
 
 func (s *ServiceUser) GetUsers(ctx context.Context) ([]*domain.GetUser, error) {
 	return s.userRepo.GetUsers(ctx)
+}
+
+func (s *ServiceUser) LoginUser(ctx context.Context, loginUser *domain.LoginUser) (*domain.Token, error) {
+	user, err := s.userRepo.GetUserByUsername(ctx, loginUser.Username)
+	if err != nil {
+		return nil, err
+	}
+	if err := scrypt.CompareHashAndPassword([]byte(*user.Password), []byte(*loginUser.Password)); err != nil {
+		return nil, err
+	}
+
+	tokenGenerator := jwt.TokenGenerator{
+		User: user,
+	}
+
+	token, err := tokenGenerator.Token()
+	if err != nil {
+		return nil, err
+	}
+
+	return token, nil
 }

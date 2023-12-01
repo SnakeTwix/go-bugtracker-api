@@ -33,3 +33,8 @@ type CreateUser struct {
 	Username *string `json:"username" validate:"required"`
 	Password *string `json:"password,omitempty" validate:"required"`
 }
+
+type LoginUser struct {
+	Username *string `json:"username" validate:"required"`
+	Password *string `json:"password,omitempty" validate:"required"`
+}

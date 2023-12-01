@@ -45,3 +45,11 @@ func (r *RepoUser) GetUsers(ctx context.Context) ([]*domain.GetUser, error) {
 
 	return users, result.Error
 }
+
+func (r *RepoUser) GetUserByUsername(ctx context.Context, username *string) (*domain.User, error) {
+	var user *domain.User
+
+	result := r.db.Model(&domain.User{}).Where("username = ?", username).Take(&user)
+
+	return user, result.Error
+}

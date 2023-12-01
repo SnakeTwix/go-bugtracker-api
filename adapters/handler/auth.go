@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"server/adapters/tools/jwt"
@@ -28,6 +29,7 @@ func GetAuthHandler(serviceUser ports.ServiceUser) *AuthHandler {
 
 func (h *AuthHandler) RegisterRoutes(e *echo.Group) {
 	e.POST("/auth/register", h.Register)
+	e.POST("/auth/login", h.Login)
 }
 
 // Register godoc
@@ -69,5 +71,22 @@ func (h *AuthHandler) Register(ctx echo.Context) error {
 }
 
 func (h *AuthHandler) Login(ctx echo.Context) error {
-	return nil
+	var user domain.LoginUser
+
+	if err := ctx.Bind(&user); err != nil {
+		return err
+	}
+	if err := ctx.Validate(&user); err != nil {
+		return err
+	}
+
+	token, err := h.serviceUser.LoginUser(ctx.Request().Context(), &user)
+
+	fmt.Println(err)
+
+	if err != nil {
+		return ctx.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	return ctx.JSON(http.StatusOK, token)
 }
