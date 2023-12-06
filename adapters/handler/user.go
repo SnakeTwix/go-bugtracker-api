@@ -29,7 +29,7 @@ func GetUserHandler(serviceUser ports.ServiceUser) *UserHandler {
 func (h *UserHandler) RegisterRoutes(e *echo.Group) {
 	e.GET("/users", h.GetUsers)
 	e.GET("/users/:id", h.GetUser)
-	//e.POST("/users", h.SaveUser)
+	//e.POST("/users", h.RegisterUser)
 }
 
 // GetUser godoc
@@ -89,7 +89,7 @@ func (h *UserHandler) SaveUser(ctx echo.Context) error {
 		return err
 	}
 
-	id, err := h.serviceUser.SaveUser(ctx.Request().Context(), &user)
+	id, err := h.serviceUser.RegisterUser(ctx.Request().Context(), &user)
 
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())

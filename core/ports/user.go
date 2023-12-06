@@ -6,7 +6,7 @@ import (
 )
 
 type ServiceUser interface {
-	SaveUser(ctx context.Context, user *domain.CreateUser) (*domain.Token, error)
+	RegisterUser(ctx context.Context, user *domain.CreateUser) (*domain.Token, error)
 	GetUser(ctx context.Context, id uint64) (*domain.GetUser, error)
 	GetUsers(ctx context.Context) ([]*domain.GetUser, error)
 	LoginUser(ctx context.Context, user *domain.LoginUser) (*domain.Token, error)
@@ -17,4 +17,5 @@ type RepositoryUser interface {
 	GetUser(ctx context.Context, id uint64) (*domain.GetUser, error)
 	GetUsers(ctx context.Context) ([]*domain.GetUser, error)
 	GetUserByUsername(ctx context.Context, username *string) (*domain.User, error)
+	UpdateUserRefreshTokenById(ctx context.Context, id uint64, refreshToken *string) error
 }

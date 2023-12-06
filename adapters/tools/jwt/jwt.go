@@ -12,6 +12,11 @@ type UserClaims struct {
 	jwt.RegisteredClaims
 }
 
+type RefreshClaims struct {
+	Id uint64 `json:"id"`
+	jwt.RegisteredClaims
+}
+
 type TokenGenerator struct {
 	User *domain.User
 }
@@ -21,7 +26,7 @@ func (g TokenGenerator) Token() (*domain.Token, error) {
 
 	// Currently the token is held for 7 days
 	// Might consider making it less when I figure out how to implement refresh tokens properly
-	claims := &UserClaims{
+	userClaims := &UserClaims{
 		Id:        g.User.ID,
 		Privilege: *g.User.Privilege,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -29,15 +34,27 @@ func (g TokenGenerator) Token() (*domain.Token, error) {
 		},
 	}
 
-	jwtToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, claims).SignedString([]byte("secret"))
-
+	userToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, userClaims).SignedString([]byte("secret"))
 	if err != nil {
 		return nil, err
 	}
 
+	refreshClaims := &RefreshClaims{
+		Id: g.User.ID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			IssuedAt: jwt.NewNumericDate(time.Now()),
+		},
+	}
+	refreshToken, err := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshClaims).SignedString([]byte("secret"))
+	if err != nil {
+		return nil, err
+	}
+
+	//refreshToken := "IMPLEMENT"
+
 	token := &domain.Token{
-		Jwt:          jwtToken,
-		RefreshToken: "TODO: IMPLEMENT",
+		Jwt:          userToken,
+		RefreshToken: refreshToken,
 	}
 
 	return token, nil

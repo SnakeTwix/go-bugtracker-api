@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"server/core/domain"
@@ -52,7 +51,7 @@ func (h *AuthHandler) Register(ctx echo.Context) error {
 		return err
 	}
 
-	token, err := h.serviceUser.SaveUser(ctx.Request().Context(), &user)
+	token, err := h.serviceUser.RegisterUser(ctx.Request().Context(), &user)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
@@ -71,9 +70,6 @@ func (h *AuthHandler) Login(ctx echo.Context) error {
 	}
 
 	token, err := h.serviceUser.LoginUser(ctx.Request().Context(), &user)
-
-	fmt.Println(err)
-
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
