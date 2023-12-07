@@ -57,14 +57,15 @@ func (h *AuthHandler) Register(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	cookie := new(http.Cookie)
-	cookie.Name = "jwt"
-	cookie.Value = token.Jwt
-	cookie.Expires = time.Now().Add(24 * 7 * time.Hour)
-	cookie.HttpOnly = true
-	cookie.Path = "/"
-	cookie.SameSite = http.SameSiteLaxMode
-	cookie.Secure = true
+	cookie := &http.Cookie{
+		Name:     "jwt",
+		Value:    token.Jwt,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * 7 * time.Hour),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
 	ctx.SetCookie(cookie)
 
 	return ctx.JSON(http.StatusOK, token)
@@ -85,15 +86,15 @@ func (h *AuthHandler) Login(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	cookie := new(http.Cookie)
-	cookie.Name = "jwt"
-	cookie.Value = token.Jwt
-	cookie.Expires = time.Now().Add(24 * 7 * time.Hour)
-	cookie.HttpOnly = true
-	cookie.Path = "/"
-	cookie.SameSite = http.SameSiteLaxMode
-	cookie.Secure = true
-
+	cookie := &http.Cookie{
+		Name:     "jwt",
+		Value:    token.Jwt,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * 7 * time.Hour),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
 	ctx.SetCookie(cookie)
 
 	return ctx.JSON(http.StatusOK, token)
