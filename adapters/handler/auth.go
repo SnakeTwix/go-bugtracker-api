@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"server/core/domain"
 	"server/core/ports"
+	"time"
 )
 
 type AuthHandler struct {
@@ -56,6 +57,16 @@ func (h *AuthHandler) Register(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
+	cookie := new(http.Cookie)
+	cookie.Name = "jwt"
+	cookie.Value = token.Jwt
+	cookie.Expires = time.Now().Add(24 * 7 * time.Hour)
+	cookie.HttpOnly = true
+	cookie.Path = "/"
+	cookie.SameSite = http.SameSiteLaxMode
+	cookie.Secure = true
+	ctx.SetCookie(cookie)
+
 	return ctx.JSON(http.StatusOK, token)
 }
 
@@ -73,6 +84,17 @@ func (h *AuthHandler) Login(ctx echo.Context) error {
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
+
+	cookie := new(http.Cookie)
+	cookie.Name = "jwt"
+	cookie.Value = token.Jwt
+	cookie.Expires = time.Now().Add(24 * 7 * time.Hour)
+	cookie.HttpOnly = true
+	cookie.Path = "/"
+	cookie.SameSite = http.SameSiteLaxMode
+	cookie.Secure = true
+
+	ctx.SetCookie(cookie)
 
 	return ctx.JSON(http.StatusOK, token)
 }
