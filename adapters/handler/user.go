@@ -66,7 +66,7 @@ func (h *UserHandler) GetUser(ctx echo.Context) error {
 // @Tags         users
 // @Produce      json
 // @Success      200  {array}   []domain.GetUser
-// @Failure      500  {object}  error "Shouldn't happen, but will if something fails"
+// @Failure      500  {object}  error "Shouldn't happen, but will if something goes really wrong"
 // @Router       /api/v1/users [GET]
 func (h *UserHandler) GetUsers(ctx echo.Context) error {
 	users, err := h.serviceUser.GetUsers(ctx.Request().Context())

@@ -13,7 +13,11 @@ func GetEchoInstance() *echo.Echo {
 	}
 
 	echoInstance = echo.New()
-	echoInstance.Use(middleware.CORS())
+	echoInstance.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowOrigins:                             []string{"http://localhost:5173"},
+		AllowCredentials:                         true,
+		UnsafeWildcardOriginWithAllowCredentials: false,
+	}))
 
 	InitializeValidator(echoInstance)
 
