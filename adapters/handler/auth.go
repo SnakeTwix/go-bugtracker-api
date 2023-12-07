@@ -29,6 +29,7 @@ func GetAuthHandler(serviceUser ports.ServiceUser) *AuthHandler {
 func (h *AuthHandler) RegisterRoutes(e *echo.Group) {
 	e.POST("/auth/register", h.Register)
 	e.POST("/auth/login", h.Login)
+	e.POST("/auth/logout", h.Logout)
 }
 
 // Register godoc
@@ -98,4 +99,19 @@ func (h *AuthHandler) Login(ctx echo.Context) error {
 	ctx.SetCookie(cookie)
 
 	return ctx.JSON(http.StatusOK, token)
+}
+
+func (h *AuthHandler) Logout(ctx echo.Context) error {
+	cookie := &http.Cookie{
+		Name:     "jwt",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Now(),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	ctx.SetCookie(cookie)
+
+	return ctx.NoContent(http.StatusOK)
 }
