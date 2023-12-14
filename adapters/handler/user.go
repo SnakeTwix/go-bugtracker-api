@@ -3,6 +3,7 @@ package handler
 import (
 	"github.com/labstack/echo/v4"
 	"net/http"
+	"server/adapters/tools/jwt"
 	"server/core/domain"
 	"server/core/ports"
 	"strconv"
@@ -29,6 +30,7 @@ func GetUserHandler(serviceUser ports.ServiceUser) *UserHandler {
 func (h *UserHandler) RegisterRoutes(e *echo.Group) {
 	e.GET("/users", h.GetUsers)
 	e.GET("/users/:id", h.GetUser)
+	e.GET("/user", h.GetCurrentUser)
 	//e.POST("/users", h.RegisterUser)
 }
 
@@ -96,4 +98,18 @@ func (h *UserHandler) SaveUser(ctx echo.Context) error {
 	}
 
 	return ctx.JSON(http.StatusOK, id)
+}
+
+func (h *UserHandler) GetCurrentUser(ctx echo.Context) error {
+	accessCookie, err := ctx.Cookie("access_token")
+	if err != nil {
+		return echo.ErrUnauthorized
+	}
+
+	accessToken := accessCookie.Value
+	tokenClaims, err := jwt.ParseUserClaims(accessToken)
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(http.StatusOK, tokenClaims)
 }

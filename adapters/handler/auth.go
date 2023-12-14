@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"server/core/domain"
 	"server/core/ports"
+	"strconv"
 	"time"
 )
 
@@ -29,6 +30,8 @@ func GetAuthHandler(serviceUser ports.ServiceUser) *AuthHandler {
 func (h *AuthHandler) RegisterRoutes(e *echo.Group) {
 	e.POST("/auth/register", h.Register)
 	e.POST("/auth/login", h.Login)
+	e.POST("/auth/logout", h.Logout)
+	e.POST("/auth/session", h.UpdateSession)
 }
 
 // Register godoc
@@ -57,18 +60,30 @@ func (h *AuthHandler) Register(ctx echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	cookie := &http.Cookie{
-		Name:     "jwt",
-		Value:    token.Jwt,
-		Path:     "/",
-		Expires:  time.Now().Add(24 * 7 * time.Hour),
+	newRefreshCookie := &http.Cookie{
+		Name:     "refresh",
+		Value:    token.RefreshToken,
+		Path:     "/api/v1/auth/session",
+		Expires:  time.Now().Add(time.Hour * 24 * 7),
 		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	}
-	ctx.SetCookie(cookie)
 
-	return ctx.JSON(http.StatusOK, token)
+	newAccessToken := &http.Cookie{
+		Name:     "access_token",
+		Value:    token.Jwt,
+		Path:     "/",
+		Expires:  time.Now().Add(time.Minute * 30),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	ctx.SetCookie(newRefreshCookie)
+	ctx.SetCookie(newAccessToken)
+
+	return ctx.NoContent(http.StatusOK)
 }
 
 func (h *AuthHandler) Login(ctx echo.Context) error {
@@ -86,16 +101,99 @@ func (h *AuthHandler) Login(ctx echo.Context) error {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	cookie := &http.Cookie{
-		Name:     "jwt",
-		Value:    token.Jwt,
-		Path:     "/",
-		Expires:  time.Now().Add(24 * 7 * time.Hour),
+	newRefreshCookie := &http.Cookie{
+		Name:     "refresh",
+		Value:    token.RefreshToken,
+		Path:     "/api/v1/auth/session",
+		Expires:  time.Now().Add(time.Hour * 24 * 7),
 		Secure:   true,
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 	}
-	ctx.SetCookie(cookie)
 
-	return ctx.JSON(http.StatusOK, token)
+	newAccessToken := &http.Cookie{
+		Name:     "access_token",
+		Value:    token.Jwt,
+		Path:     "/",
+		Expires:  time.Now().Add(time.Minute * 30),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	ctx.SetCookie(newRefreshCookie)
+	ctx.SetCookie(newAccessToken)
+
+	return ctx.NoContent(http.StatusOK)
+}
+
+func (h *AuthHandler) Logout(ctx echo.Context) error {
+	idParam := ctx.Param("id")
+	id, err := strconv.ParseUint(idParam, 10, 64)
+	if err != nil {
+		return echo.ErrBadRequest
+	}
+
+	err = h.serviceUser.LogoutUser(ctx.Request().Context(), id)
+	if err != nil {
+		return echo.ErrInternalServerError
+	}
+
+	newRefreshCookie := &http.Cookie{
+		Name:     "refresh",
+		Value:    "",
+		Path:     "/api/v1/auth/session",
+		Expires:  time.Now(),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	newAccessToken := &http.Cookie{
+		Name:     "access_token",
+		Value:    "",
+		Path:     "/",
+		Expires:  time.Now(),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	ctx.SetCookie(newRefreshCookie)
+	ctx.SetCookie(newAccessToken)
+
+	return ctx.NoContent(http.StatusOK)
+}
+
+func (h *AuthHandler) UpdateSession(ctx echo.Context) error {
+	refreshCookie, err := ctx.Cookie("refresh")
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, "No refresh cookie provided")
+	}
+	token, err := h.serviceUser.UpdateSession(ctx.Request().Context(), &refreshCookie.Value)
+
+	newRefreshCookie := &http.Cookie{
+		Name:     "refresh",
+		Value:    token.RefreshToken,
+		Path:     "/api/v1/auth/session",
+		Expires:  time.Now().Add(time.Hour * 24 * 7),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	newAccessToken := &http.Cookie{
+		Name:     "access_token",
+		Value:    token.Jwt,
+		Path:     "/",
+		Expires:  time.Now().Add(time.Minute * 30),
+		Secure:   true,
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	}
+
+	ctx.SetCookie(newRefreshCookie)
+	ctx.SetCookie(newAccessToken)
+
+	return ctx.NoContent(http.StatusOK)
 }
