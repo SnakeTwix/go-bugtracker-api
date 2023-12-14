@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"server/adapters/tools/jwt"
 	"server/core/domain"
+	"server/core/enums/cookies"
 	"server/core/ports"
 	"strconv"
 )
@@ -31,7 +32,6 @@ func (h *UserHandler) RegisterRoutes(e *echo.Group) {
 	e.GET("/users", h.GetUsers)
 	e.GET("/users/:id", h.GetUser)
 	e.GET("/user", h.GetCurrentUser)
-	//e.POST("/users", h.RegisterUser)
 }
 
 // GetUser godoc
@@ -101,7 +101,7 @@ func (h *UserHandler) SaveUser(ctx echo.Context) error {
 }
 
 func (h *UserHandler) GetCurrentUser(ctx echo.Context) error {
-	accessCookie, err := ctx.Cookie("access_token")
+	accessCookie, err := ctx.Cookie(cookies.AccessToken)
 	if err != nil {
 		return echo.ErrUnauthorized
 	}

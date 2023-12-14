@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/joho/godotenv"
 	"github.com/labstack/gommon/log"
 	echoSwagger "github.com/swaggo/echo-swagger"
 	"server/adapters/handler"
@@ -8,6 +9,7 @@ import (
 	"server/adapters/repository/migrations"
 	"server/core/services"
 	"server/tools/echo"
+	"server/utils"
 
 	_ "server/docs"
 )
@@ -20,11 +22,16 @@ import (
 // @host localhost:1234
 // @BasePath /api/v1
 func main() {
+	// Load .env file
+	err := godotenv.Load()
+	if err != nil {
+		panic(err)
+	}
+
 	e := echo.GetEchoInstance()
 	apiV1 := e.Group("/api/v1")
 
 	db := repository.InitDB()
-
 	if err := migrations.RunMigrations(db); err != nil {
 		log.Error(err)
 		panic(err)
@@ -40,5 +47,5 @@ func main() {
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	e.Logger.Debug(e.Start(":1234"))
+	e.Logger.Debug(e.Start(utils.GetEnv("API_ADDRESS")))
 }
