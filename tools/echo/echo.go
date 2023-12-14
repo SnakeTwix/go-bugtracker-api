@@ -14,7 +14,7 @@ func GetEchoInstance() *echo.Echo {
 
 	echoInstance = echo.New()
 	echoInstance.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:                             []string{"http://localhost:5173"},
+		AllowOrigins:                             []string{"http://localhost:3000"},
 		AllowCredentials:                         true,
 		UnsafeWildcardOriginWithAllowCredentials: false,
 	}))

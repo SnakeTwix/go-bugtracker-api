@@ -99,3 +99,44 @@ func (s *ServiceUser) LoginUser(ctx context.Context, loginUser *domain.LoginUser
 
 	return token, nil
 }
+
+func (s *ServiceUser) LogoutUser(ctx context.Context, id uint64) error {
+	tokenGenerator := jwt.TokenGenerator{
+		User: &domain.User{},
+	}
+
+	token, err := tokenGenerator.Token()
+	if err != nil {
+		return err
+	}
+
+	err = s.userRepo.UpdateUserRefreshTokenById(ctx, id, &token.RefreshToken)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *ServiceUser) UpdateSession(ctx context.Context, refreshToken *string) (*domain.Token, error) {
+	user, err := s.userRepo.GetUserByRefreshToken(ctx, refreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	tokenGenerator := jwt.TokenGenerator{
+		User: user,
+	}
+
+	token, err := tokenGenerator.Token()
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.userRepo.UpdateUserRefreshTokenById(ctx, user.ID, &token.RefreshToken)
+	if err != nil {
+		return nil, err
+	}
+
+	return token, nil
+}

@@ -10,6 +10,8 @@ type ServiceUser interface {
 	GetUser(ctx context.Context, id uint64) (*domain.GetUser, error)
 	GetUsers(ctx context.Context) ([]*domain.GetUser, error)
 	LoginUser(ctx context.Context, user *domain.LoginUser) (*domain.Token, error)
+	LogoutUser(ctx context.Context, id uint64) error
+	UpdateSession(ctx context.Context, refreshToken *string) (*domain.Token, error)
 }
 
 type RepositoryUser interface {
@@ -18,4 +20,5 @@ type RepositoryUser interface {
 	GetUsers(ctx context.Context) ([]*domain.GetUser, error)
 	GetUserByUsername(ctx context.Context, username *string) (*domain.User, error)
 	UpdateUserRefreshTokenById(ctx context.Context, id uint64, refreshToken *string) error
+	GetUserByRefreshToken(ctx context.Context, refreshToken *string) (*domain.User, error)
 }

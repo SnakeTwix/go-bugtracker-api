@@ -6,17 +6,6 @@ import (
 	"time"
 )
 
-type UserClaims struct {
-	Id        uint64 `json:"id"`
-	Privilege string `json:"privilege"`
-	jwt.RegisteredClaims
-}
-
-type RefreshClaims struct {
-	Id uint64 `json:"id"`
-	jwt.RegisteredClaims
-}
-
 type TokenGenerator struct {
 	User *domain.User
 }

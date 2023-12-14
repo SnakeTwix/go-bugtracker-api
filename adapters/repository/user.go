@@ -59,3 +59,11 @@ func (r *RepoUser) UpdateUserRefreshTokenById(ctx context.Context, id uint64, re
 
 	return result.Error
 }
+
+func (r *RepoUser) GetUserByRefreshToken(ctx context.Context, refreshToken *string) (*domain.User, error) {
+	var user *domain.User
+
+	result := r.db.Model(&domain.User{}).Where("refresh_token = ?", refreshToken).Take(&user)
+
+	return user, result.Error
+}
