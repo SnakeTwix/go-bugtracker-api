@@ -111,5 +111,11 @@ func (h *UserHandler) GetCurrentUser(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return ctx.JSON(http.StatusOK, tokenClaims)
+
+	user, err := h.serviceUser.GetUser(ctx.Request().Context(), tokenClaims.Id)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(http.StatusOK, user)
 }

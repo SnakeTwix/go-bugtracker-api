@@ -47,5 +47,5 @@ func main() {
 
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
-	e.Logger.Debug(e.Start(utils.GetEnv("API_ADDRESS")))
+	e.Logger.Info(e.Start(utils.GetEnv("API_ADDRESS")))
 }

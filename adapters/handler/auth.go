@@ -141,7 +141,7 @@ func (h *AuthHandler) Logout(ctx echo.Context) error {
 func (h *AuthHandler) UpdateSession(ctx echo.Context) error {
 	refreshCookie, err := ctx.Cookie(cookies.RefreshToken)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, "No refresh cookie provided")
+		return echo.NewHTTPError(http.StatusUnauthorized, "No refresh cookie provided")
 	}
 	token, err := h.serviceUser.UpdateSession(ctx.Request().Context(), &refreshCookie.Value)
 
