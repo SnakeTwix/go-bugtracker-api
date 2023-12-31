@@ -1,4 +1,4 @@
-package services
+package service
 
 import (
 	"context"
@@ -8,25 +8,25 @@ import (
 	"server/core/ports"
 )
 
-type ServiceUser struct {
+type User struct {
 	userRepo ports.RepositoryUser
 }
 
-var userService *ServiceUser
+var userService *User
 
-func GetServiceUser(repo ports.RepositoryUser) *ServiceUser {
+func GetServiceUser(repo ports.RepositoryUser) *User {
 	if userService != nil {
 		return userService
 	}
 
-	userService = &ServiceUser{
+	userService = &User{
 		userRepo: repo,
 	}
 
 	return userService
 }
 
-func (s *ServiceUser) RegisterUser(ctx context.Context, APIUser *domain.CreateUser) (*domain.Token, error) {
+func (s *User) RegisterUser(ctx context.Context, APIUser *domain.CreateUser) (*domain.User, error) {
 	hash, err := scrypt.GenerateFromPassword([]byte(*APIUser.Password), scrypt.DefaultParams)
 
 	if err != nil {
@@ -49,32 +49,18 @@ func (s *ServiceUser) RegisterUser(ctx context.Context, APIUser *domain.CreateUs
 		return nil, err
 	}
 
-	tokener := &jwt.TokenGenerator{
-		User: createdUser,
-	}
-
-	token, err := tokener.Token()
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.userRepo.UpdateUserRefreshTokenById(ctx, createdUser.ID, &token.RefreshToken)
-	if err != nil {
-		return nil, err
-	}
-
-	return token, err
+	return createdUser, err
 }
 
-func (s *ServiceUser) GetUser(ctx context.Context, id uint64) (*domain.GetUser, error) {
+func (s *User) GetUser(ctx context.Context, id uint64) (*domain.GetUser, error) {
 	return s.userRepo.GetUser(ctx, id)
 }
 
-func (s *ServiceUser) GetUsers(ctx context.Context) ([]*domain.GetUser, error) {
+func (s *User) GetUsers(ctx context.Context) ([]*domain.GetUser, error) {
 	return s.userRepo.GetUsers(ctx)
 }
 
-func (s *ServiceUser) LoginUser(ctx context.Context, loginUser *domain.LoginUser) (*domain.Token, error) {
+func (s *User) LoginUser(ctx context.Context, loginUser *domain.LoginUser) (*domain.User, error) {
 	user, err := s.userRepo.GetUserByUsername(ctx, loginUser.Username)
 	if err != nil {
 		return nil, err
@@ -83,24 +69,10 @@ func (s *ServiceUser) LoginUser(ctx context.Context, loginUser *domain.LoginUser
 		return nil, err
 	}
 
-	tokenGenerator := jwt.TokenGenerator{
-		User: user,
-	}
-
-	token, err := tokenGenerator.Token()
-	if err != nil {
-		return nil, err
-	}
-
-	err = s.userRepo.UpdateUserRefreshTokenById(ctx, user.ID, &token.RefreshToken)
-	if err != nil {
-		return nil, err
-	}
-
-	return token, nil
+	return user, nil
 }
 
-func (s *ServiceUser) LogoutUser(ctx context.Context, id uint64) error {
+func (s *User) LogoutUser(ctx context.Context, id uint64) error {
 	tokenGenerator := jwt.TokenGenerator{
 		User: &domain.User{},
 	}
@@ -118,7 +90,7 @@ func (s *ServiceUser) LogoutUser(ctx context.Context, id uint64) error {
 	return nil
 }
 
-func (s *ServiceUser) UpdateSession(ctx context.Context, refreshToken *string) (*domain.Token, error) {
+func (s *User) UpdateSession(ctx context.Context, refreshToken *string) (*domain.Token, error) {
 	user, err := s.userRepo.GetUserByRefreshToken(ctx, refreshToken)
 	if err != nil {
 		return nil, err

@@ -1,4 +1,4 @@
-package echo
+package server
 
 import (
 	"github.com/go-playground/validator/v10"
@@ -18,6 +18,6 @@ func (cv *CustomValidator) Validate(i interface{}) error {
 	return nil
 }
 
-func InitializeValidator(echoInstance *echo.Echo) {
-	echoInstance.Validator = &CustomValidator{validator: validator.New()}
+func (s *Server) InitializeValidator() {
+	s.Echo.Validator = &CustomValidator{validator: validator.New()}
 }

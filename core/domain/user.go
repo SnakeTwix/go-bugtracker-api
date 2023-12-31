@@ -13,6 +13,7 @@ type User struct {
 
 	Projects []*Project `json:"projects,omitempty" gorm:"many2many:user_projects"`
 	Tickets  []*Ticket  `json:"tickets,omitempty" gorm:"many2many:ticket_assignees"`
+	Sessions []*Session `json:"sessions,omitempty"`
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -25,8 +26,8 @@ type GetUser struct {
 	Status    *string `json:"status"`
 	Privilege *string `json:"privilege"`
 
-	Projects []*Project `json:"projects,omitempty" swaggerignore:"true"`
-	Tickets  []*Ticket  `json:"tickets,omitempty" swaggerignore:"true"`
+	Projects []*Project `json:"projects,omitempty" swaggerignore:"true" gorm:"many2many:user_projects"`
+	Tickets  []*Ticket  `json:"tickets,omitempty" swaggerignore:"true" gorm:"many2many:ticket_assignees"`
 }
 
 type CreateUser struct {

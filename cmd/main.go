@@ -3,15 +3,13 @@ package main
 import (
 	"github.com/joho/godotenv"
 	"github.com/labstack/gommon/log"
-	echoSwagger "github.com/swaggo/echo-swagger"
 	"server/adapters/handler"
 	"server/adapters/repository"
 	"server/adapters/repository/migrations"
-	"server/core/services"
-	"server/tools/echo"
-	"server/utils"
-
+	"server/core/service"
 	_ "server/docs"
+	"server/tools/middleware"
+	"server/tools/server"
 )
 
 // @title Swagger Test
@@ -28,24 +26,37 @@ func main() {
 		panic(err)
 	}
 
-	e := echo.GetEchoInstance()
-	apiV1 := e.Group("/api/v1")
-
 	db := repository.InitDB()
 	if err := migrations.RunMigrations(db); err != nil {
 		log.Error(err)
 		panic(err)
 	}
 
+	// Repos
 	repoUser := repository.GetRepoUser(db)
-	serviceUser := services.GetServiceUser(repoUser)
+	repoSession := repository.GetRepoSession(db)
+
+	// Services
+	serviceUser := service.GetServiceUser(repoUser)
+	serviceSession := service.GetServiceSession(repoSession)
+
+	services := server.Services{
+		ServiceSession: serviceSession,
+		ServiceUser:    serviceUser,
+	}
+
+	serverInstance := server.GetServerInstance(&services)
+	apiV1 := serverInstance.Echo.Group("/api/v1")
+	middlewares := middleware.GetMiddleware(serverInstance)
+
+	// TODO: Figure out whether I should provide the server.Services or just one by one
+	// Handlers
 	userHandler := handler.GetUserHandler(serviceUser)
-	authHandler := handler.GetAuthHandler(serviceUser)
+	authHandler := handler.GetAuthHandler(serviceUser, serviceSession)
 
-	userHandler.RegisterRoutes(apiV1)
-	authHandler.RegisterRoutes(apiV1)
+	// Routes
+	userHandler.RegisterRoutes(middlewares, apiV1)
+	authHandler.RegisterRoutes(middlewares, apiV1)
 
-	e.GET("/swagger/*", echoSwagger.WrapHandler)
-
-	e.Logger.Debug(e.Start(utils.GetEnv("API_ADDRESS")))
+	serverInstance.StartDebug()
 }

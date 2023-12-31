@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"server/adapters/tools/jwt"
 	"server/core/domain"
 	"server/core/enums/cookies"
 	"server/core/ports"
+	"server/tools/middleware"
 	"strconv"
 )
 
@@ -28,10 +30,11 @@ func GetUserHandler(serviceUser ports.ServiceUser) *UserHandler {
 	return userHandler
 }
 
-func (h *UserHandler) RegisterRoutes(e *echo.Group) {
-	e.GET("/users", h.GetUsers)
-	e.GET("/users/:id", h.GetUser)
-	e.GET("/user", h.GetCurrentUser)
+func (h *UserHandler) RegisterRoutes(middleware *middleware.Middleware, group *echo.Group) {
+	group.GET("/users", h.GetUsers)
+	group.GET("/users/:id", h.GetUser)
+	group.GET("/users/current", h.GetCurrentUser)
+	group.GET("/test", h.TestRoute, middleware.CheckLoggedIn)
 }
 
 // GetUser godoc
@@ -49,13 +52,11 @@ func (h *UserHandler) GetUser(ctx echo.Context) error {
 	idParam := ctx.Param("id")
 
 	id, err := strconv.ParseUint(idParam, 10, 64)
-
 	if err != nil {
 		return echo.ErrBadRequest
 	}
 
 	user, err := h.serviceUser.GetUser(ctx.Request().Context(), id)
-
 	if err != nil {
 		return err
 	}
@@ -111,5 +112,23 @@ func (h *UserHandler) GetCurrentUser(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return ctx.JSON(http.StatusOK, tokenClaims)
+
+	user, err := h.serviceUser.GetUser(ctx.Request().Context(), tokenClaims.Id)
+	if err != nil {
+		return err
+	}
+
+	return ctx.JSON(http.StatusOK, user)
+}
+
+func (h *UserHandler) TestRoute(ctx echo.Context) error {
+	//fmt.Println(ctx.Get("session"))
+	session, ok := ctx.Get("session").(*domain.Session)
+	if !ok {
+		fmt.Println("Isn't a session")
+	}
+
+	fmt.Print(session)
+
+	return ctx.NoContent(200)
 }
