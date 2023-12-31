@@ -26,6 +26,7 @@ func RunMigrations(db *gorm.DB) error {
 		&domain.Ticket{},
 		&domain.TicketComment{},
 		&domain.UserProjectRole{},
+		&domain.Session{},
 	)
 
 	return err

@@ -6,10 +6,14 @@ import (
 )
 
 type ServiceUser interface {
-	RegisterUser(ctx context.Context, user *domain.CreateUser) (*domain.Token, error)
+	// RegisterUser TODO: Return domain.GetUser instead of domain.User
+
+	RegisterUser(ctx context.Context, user *domain.CreateUser) (*domain.User, error)
+	// LoginUser TODO: Return domain.GetUser instead of domain.User
+
+	LoginUser(ctx context.Context, user *domain.LoginUser) (*domain.User, error)
 	GetUser(ctx context.Context, id uint64) (*domain.GetUser, error)
 	GetUsers(ctx context.Context) ([]*domain.GetUser, error)
-	LoginUser(ctx context.Context, user *domain.LoginUser) (*domain.Token, error)
 	LogoutUser(ctx context.Context, id uint64) error
 	UpdateSession(ctx context.Context, refreshToken *string) (*domain.Token, error)
 }

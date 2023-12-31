@@ -4,58 +4,37 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"server/core/domain"
-	"server/core/enums/cookies"
 	"server/core/ports"
+	"server/tools/middleware"
 	"strconv"
 	"time"
 )
 
 type AuthHandler struct {
-	serviceUser ports.ServiceUser
+	serviceUser    ports.ServiceUser
+	serviceSession ports.ServiceSession
 }
 
 var authHandler *AuthHandler
 
-func GetAuthHandler(serviceUser ports.ServiceUser) *AuthHandler {
+func GetAuthHandler(serviceUser ports.ServiceUser, serviceSession ports.ServiceSession) *AuthHandler {
 	if authHandler != nil {
 		return authHandler
 	}
 
 	authHandler = &AuthHandler{
-		serviceUser: serviceUser,
+		serviceUser:    serviceUser,
+		serviceSession: serviceSession,
 	}
 
 	return authHandler
 }
 
-func (h *AuthHandler) RegisterRoutes(e *echo.Group) {
-	e.POST("/auth/register", h.Register)
-	e.POST("/auth/login", h.Login)
-	e.POST("/auth/logout", h.Logout)
-	e.POST("/auth/session", h.UpdateSession)
-}
-
-func getRefreshCookie(refreshToken string) *http.Cookie {
-	return &http.Cookie{
-		Name:     cookies.RefreshToken,
-		Value:    refreshToken,
-		Path:     "/api/v1/auth/session",
-		Expires:  time.Now().Add(time.Hour * 24 * 7),
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	}
-}
-func getAccessCookie(accessToken string) *http.Cookie {
-	return &http.Cookie{
-		Name:     cookies.AccessToken,
-		Value:    accessToken,
-		Path:     "/",
-		Expires:  time.Now().Add(time.Minute * 30),
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	}
+func (h *AuthHandler) RegisterRoutes(middleware *middleware.Middleware, group *echo.Group) {
+	group.POST("/auth/register", h.Register)
+	group.POST("/auth/login", h.Login)
+	group.POST("/auth/logout", h.Logout)
+	//e.POST("/auth/session", h.UpdateSession)
 }
 
 // Register godoc
@@ -79,40 +58,44 @@ func (h *AuthHandler) Register(ctx echo.Context) error {
 		return err
 	}
 
-	token, err := h.serviceUser.RegisterUser(ctx.Request().Context(), &user)
+	createdUser, err := h.serviceUser.RegisterUser(ctx.Request().Context(), &user)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 
-	newRefreshCookie := getRefreshCookie(token.RefreshToken)
-	newAccessToken := getAccessCookie(token.Jwt)
+	IP := ctx.RealIP()
+	session, err := h.serviceSession.CreateSession(ctx.Request().Context(), &IP, createdUser)
+	if err != nil {
+		return err
+	}
 
-	ctx.SetCookie(newRefreshCookie)
-	ctx.SetCookie(newAccessToken)
+	ctx.SetCookie(session.Cookie())
 
 	return ctx.NoContent(http.StatusOK)
 }
 
 func (h *AuthHandler) Login(ctx echo.Context) error {
-	var user domain.LoginUser
+	var loginUser domain.LoginUser
 
-	if err := ctx.Bind(&user); err != nil {
+	if err := ctx.Bind(&loginUser); err != nil {
 		return err
 	}
-	if err := ctx.Validate(&user); err != nil {
+	if err := ctx.Validate(&loginUser); err != nil {
 		return err
 	}
 
-	token, err := h.serviceUser.LoginUser(ctx.Request().Context(), &user)
+	user, err := h.serviceUser.LoginUser(ctx.Request().Context(), &loginUser)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
 
-	newRefreshCookie := getRefreshCookie(token.RefreshToken)
-	newAccessToken := getAccessCookie(token.Jwt)
+	IP := ctx.RealIP()
+	session, err := h.serviceSession.CreateSession(ctx.Request().Context(), &IP, user)
+	if err != nil {
+		return err
+	}
 
-	ctx.SetCookie(newRefreshCookie)
-	ctx.SetCookie(newAccessToken)
+	ctx.SetCookie(session.Cookie())
 
 	return ctx.NoContent(http.StatusOK)
 }
@@ -129,27 +112,8 @@ func (h *AuthHandler) Logout(ctx echo.Context) error {
 		return echo.ErrInternalServerError
 	}
 
-	newRefreshCookie := getRefreshCookie("")
-	newAccessToken := getAccessCookie("")
-
-	ctx.SetCookie(newRefreshCookie)
-	ctx.SetCookie(newAccessToken)
-
-	return ctx.NoContent(http.StatusOK)
-}
-
-func (h *AuthHandler) UpdateSession(ctx echo.Context) error {
-	refreshCookie, err := ctx.Cookie(cookies.RefreshToken)
-	if err != nil {
-		return echo.NewHTTPError(http.StatusUnauthorized, "No refresh cookie provided")
-	}
-	token, err := h.serviceUser.UpdateSession(ctx.Request().Context(), &refreshCookie.Value)
-
-	newRefreshCookie := getRefreshCookie(token.RefreshToken)
-	newAccessToken := getAccessCookie(token.Jwt)
-
-	ctx.SetCookie(newRefreshCookie)
-	ctx.SetCookie(newAccessToken)
+	logoutCookie := (&domain.Session{Expiry: time.Now()}).Cookie()
+	ctx.SetCookie(logoutCookie)
 
 	return ctx.NoContent(http.StatusOK)
 }
