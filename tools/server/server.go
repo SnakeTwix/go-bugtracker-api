@@ -36,6 +36,7 @@ type Services struct {
 
 func (s *Server) StartDebug() {
 	s.Echo.Logger.Info(s.Echo.Start(utils.GetEnv("API_ADDRESS")))
+	//s.Echo.Logger.Info(s.Echo.Start(":1234"))
 
 }
 

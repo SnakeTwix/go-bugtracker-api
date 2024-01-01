@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"github.com/google/uuid"
 	"server/core/domain"
 	"server/core/ports"
@@ -29,7 +30,18 @@ func GetServiceSession(repo ports.RepositorySession) *Session {
 }
 
 func (s *Session) GetSession(ctx context.Context, name string) (*domain.Session, error) {
-	return s.repoSession.GetSession(ctx, name)
+	session, err := s.repoSession.GetSession(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionExpired := time.Now().Compare(session.Expiry) == 1
+
+	if sessionExpired {
+		return nil, errors.New("session expired")
+	}
+
+	return session, nil
 }
 
 func (s *Session) SaveSession(ctx context.Context, issueSession *domain.IssueSession) (*domain.Session, error) {

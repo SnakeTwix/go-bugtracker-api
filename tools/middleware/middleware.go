@@ -50,7 +50,7 @@ func (m *Middleware) SetUserIfSession(next echo.HandlerFunc) echo.HandlerFunc {
 
 		session, err := m.server.Services.ServiceSession.GetSession(ctx.Request().Context(), cookie.Value)
 		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err)
+			return next(ctx)
 		}
 
 		ctx.Set("session", session)
