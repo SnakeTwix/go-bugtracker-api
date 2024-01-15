@@ -39,6 +39,7 @@ func main() {
 	// Services
 	serviceUser := service.GetServiceUser(repoUser)
 	serviceSession := service.GetServiceSession(repoSession)
+	serviceAuth := service.GetServiceAuth(repoUser, repoSession)
 
 	services := server.Services{
 		ServiceSession: serviceSession,
@@ -52,7 +53,7 @@ func main() {
 	// TODO: Figure out whether I should provide the server.Services or just one by one
 	// Handlers
 	userHandler := handler.GetUserHandler(serviceUser)
-	authHandler := handler.GetAuthHandler(serviceUser, serviceSession)
+	authHandler := handler.GetAuthHandler(serviceSession, serviceAuth)
 
 	// Routes
 	userHandler.RegisterRoutes(middlewares, apiV1)

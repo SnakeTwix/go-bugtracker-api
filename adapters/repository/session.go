@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 	"server/core/domain"
 )
@@ -33,4 +34,9 @@ func (r *Session) GetSession(ctx context.Context, name string) (*domain.Session,
 func (r *Session) SaveSession(ctx context.Context, session *domain.Session) (*domain.Session, error) {
 	result := r.db.Create(session)
 	return session, result.Error
+}
+
+func (r *Session) DeleteSession(ctx context.Context, sessionID uuid.UUID) error {
+	result := r.db.Delete(&domain.Session{}, sessionID)
+	return result.Error
 }

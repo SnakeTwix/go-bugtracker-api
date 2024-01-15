@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"server/adapters/tools/jwt"
 	"server/core/domain"
-	"server/core/enums/cookies"
+	contextEnum "server/core/enums/context"
 	"server/core/ports"
 	"server/tools/middleware"
 	"strconv"
@@ -81,39 +80,33 @@ func (h *UserHandler) GetUsers(ctx echo.Context) error {
 	return ctx.JSON(http.StatusOK, users)
 }
 
-func (h *UserHandler) SaveUser(ctx echo.Context) error {
-	var user domain.CreateUser
-
-	if err := ctx.Bind(&user); err != nil {
-		return err
-	}
-
-	if err := ctx.Validate(&user); err != nil {
-		return err
-	}
-
-	id, err := h.serviceUser.RegisterUser(ctx.Request().Context(), &user)
-
-	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
-	}
-
-	return ctx.JSON(http.StatusOK, id)
-}
+//func (h *UserHandler) SaveUser(ctx echo.Context) error {
+//	var user domain.CreateUser
+//
+//	if err := ctx.Bind(&user); err != nil {
+//		return err
+//	}
+//
+//	if err := ctx.Validate(&user); err != nil {
+//		return err
+//	}
+//
+//	id, err := h.serviceUser.RegisterUser(ctx.Request().Context(), &user)
+//
+//	if err != nil {
+//		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+//	}
+//
+//	return ctx.JSON(http.StatusOK, id)
+//}
 
 func (h *UserHandler) GetCurrentUser(ctx echo.Context) error {
-	accessCookie, err := ctx.Cookie(cookies.AccessToken)
-	if err != nil {
+	session, ok := ctx.Get(contextEnum.Session).(*domain.Session)
+	if !ok {
 		return echo.ErrUnauthorized
 	}
 
-	accessToken := accessCookie.Value
-	tokenClaims, err := jwt.ParseUserClaims(accessToken)
-	if err != nil {
-		return err
-	}
-
-	user, err := h.serviceUser.GetUser(ctx.Request().Context(), tokenClaims.Id)
+	user, err := h.serviceUser.GetUser(ctx.Request().Context(), session.UserID)
 	if err != nil {
 		return err
 	}

@@ -4,27 +4,27 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"server/core/domain"
+	contextEnum "server/core/enums/context"
 	"server/core/ports"
 	"server/tools/middleware"
-	"strconv"
 	"time"
 )
 
 type AuthHandler struct {
-	serviceUser    ports.ServiceUser
 	serviceSession ports.ServiceSession
+	serviceAuth    ports.ServiceAuth
 }
 
 var authHandler *AuthHandler
 
-func GetAuthHandler(serviceUser ports.ServiceUser, serviceSession ports.ServiceSession) *AuthHandler {
+func GetAuthHandler(serviceSession ports.ServiceSession, serviceAuth ports.ServiceAuth) *AuthHandler {
 	if authHandler != nil {
 		return authHandler
 	}
 
 	authHandler = &AuthHandler{
-		serviceUser:    serviceUser,
 		serviceSession: serviceSession,
+		serviceAuth:    serviceAuth,
 	}
 
 	return authHandler
@@ -58,7 +58,7 @@ func (h *AuthHandler) Register(ctx echo.Context) error {
 		return err
 	}
 
-	createdUser, err := h.serviceUser.RegisterUser(ctx.Request().Context(), &user)
+	createdUser, err := h.serviceAuth.RegisterUser(ctx.Request().Context(), &user)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
@@ -84,7 +84,7 @@ func (h *AuthHandler) Login(ctx echo.Context) error {
 		return err
 	}
 
-	user, err := h.serviceUser.LoginUser(ctx.Request().Context(), &loginUser)
+	user, err := h.serviceAuth.LoginUser(ctx.Request().Context(), &loginUser)
 	if err != nil {
 		return ctx.JSON(http.StatusBadRequest, err.Error())
 	}
@@ -101,15 +101,14 @@ func (h *AuthHandler) Login(ctx echo.Context) error {
 }
 
 func (h *AuthHandler) Logout(ctx echo.Context) error {
-	idParam := ctx.Param("id")
-	id, err := strconv.ParseUint(idParam, 10, 64)
-	if err != nil {
-		return echo.ErrBadRequest
+	session, ok := ctx.Get(contextEnum.Session).(*domain.Session)
+	if !ok {
+		return echo.ErrUnauthorized
 	}
 
-	err = h.serviceUser.LogoutUser(ctx.Request().Context(), id)
+	err := h.serviceAuth.LogoutUser(ctx.Request().Context(), session.ID)
 	if err != nil {
-		return echo.ErrInternalServerError
+		return err
 	}
 
 	logoutCookie := (&domain.Session{Expiry: time.Now()}).Cookie()

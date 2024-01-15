@@ -3,6 +3,7 @@ package middleware
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/gommon/log"
 	"net/http"
 	"server/core/domain"
 	"server/core/enums/cookies"
@@ -38,6 +39,7 @@ func (m *Middleware) registerGlobalMiddleware() {
 	}))
 
 	middlewareInstance.server.Echo.Use(middlewareInstance.SetUserIfSession)
+	middlewareInstance.server.Echo.Use(middlewareInstance.LogRequest)
 }
 
 func (m *Middleware) SetUserIfSession(next echo.HandlerFunc) echo.HandlerFunc {
@@ -64,6 +66,14 @@ func (m *Middleware) CheckLoggedIn(next echo.HandlerFunc) echo.HandlerFunc {
 		if !ok {
 			return echo.NewHTTPError(http.StatusUnauthorized)
 		}
+
+		return next(ctx)
+	}
+}
+
+func (m *Middleware) LogRequest(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		log.Info(ctx.Request().RequestURI)
 
 		return next(ctx)
 	}

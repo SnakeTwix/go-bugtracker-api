@@ -53,17 +53,3 @@ func (r *User) GetUserByUsername(ctx context.Context, username *string) (*domain
 
 	return user, result.Error
 }
-
-func (r *User) UpdateUserRefreshTokenById(ctx context.Context, id uint64, refreshToken *string) error {
-	result := r.db.Model(&domain.User{}).Where("id = ?", id).Update("refresh_token", refreshToken)
-
-	return result.Error
-}
-
-func (r *User) GetUserByRefreshToken(ctx context.Context, refreshToken *string) (*domain.User, error) {
-	var user *domain.User
-
-	result := r.db.Model(&domain.User{}).Where("refresh_token = ?", refreshToken).Take(&user)
-
-	return user, result.Error
-}

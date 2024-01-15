@@ -26,7 +26,7 @@ type Server struct {
 	Services *Services
 }
 
-// Services This isn't a part of the service packages as one might expect
+// Services This isn't a part of the service packages as one might expect (Which kinda seems like bad design)
 // because this defines what ports WE want to interact with, not all the ports present in the application
 // Though in this case it is synonymous
 type Services struct {

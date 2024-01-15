@@ -2,6 +2,7 @@ package ports
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"server/core/domain"
 )
 
@@ -19,4 +20,5 @@ type ServiceSession interface {
 type RepositorySession interface {
 	GetSession(ctx context.Context, name string) (*domain.Session, error)
 	SaveSession(ctx context.Context, session *domain.Session) (*domain.Session, error)
+	DeleteSession(ctx context.Context, sessionID uuid.UUID) error
 }
