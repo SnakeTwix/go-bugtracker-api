@@ -1,0 +1,21 @@
+Access_Level is a 32 bit integer. Each bit corresponds to a permissions a user might have in a project 
+
+Each row repesents a bit in the access_level, the top on is the most significant bit
+1 = The bit is assigned a permission. 0 = The bit isn't used
+0000 0000 0000 0000 0000 0011 1111 1111
+
+
+Create ticket tag 12;
+Delete Project 11
+Manage roles 10 
+Manage user roles 9
+Add members 8
+Kick members 7
+Delete own ticket comments 6
+Delete tickets comments 5
+Toggle Ticket Status 4
+Manage ticket assignees 3
+Edit tickets of others 2
+Create Ticket 1
+View tickets 0
+

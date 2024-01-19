@@ -72,7 +72,6 @@ func (h *UserHandler) GetUser(ctx echo.Context) error {
 // @Router       /api/v1/users [GET]
 func (h *UserHandler) GetUsers(ctx echo.Context) error {
 	users, err := h.serviceUser.GetUsers(ctx.Request().Context())
-
 	if err != nil {
 		return err
 	}
